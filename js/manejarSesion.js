@@ -23,33 +23,35 @@ function login(event) {
     });
 
     fetch(request)
-            .then((response) => {
-                if (response.status === 200) {
-                    return response.json();
-                    //bad request
-                } else if ((response.status === 400) || (response.status===401)) {
-                    console.log('error 400');
-                    return false;
-                } else {
-                    console.log("Something went wrong on API server!");
-                    return false;
-                }
-
-            })
-            .then((response) => {
-                console.log(response);
-                if (response.userId && response.email) {
-                    toggleLoginMain(response.email);
-               
-                } else {
-                    console.error('La autenticación ha fallado');
-                    showErrorLogin('La autenticación ha fallado', true, "errorLogin");
-                }
+        .then((response) => {
+            if (response.status === 200) {
+                return response.json();
+                //bad request
+            } else if ((response.status === 400) || (response.status === 401)) {
+                console.log('error 400');
+                return false;
+            } else {
+                console.log("Something went wrong on API server!");
+                return false;
             }
-            )
-            .catch((error) => {
-                console.error('Ha ocurrido un error en login' + error);
-            });
+
+        })
+        .then((response) => {
+            console.log(response);
+            if (response.userId && response.email) {
+                toggleLoginMain(response.email);
+                userId = response.userId;
+
+            } else {
+                console.error('La autenticación ha fallado');
+                showErrorLogin('La autenticación ha fallado', true, "errorLogin");
+                userId = null;
+            }
+        }
+        )
+        .catch((error) => {
+            console.error('Ha ocurrido un error en login' + error);
+        });
 
 
 }
@@ -69,7 +71,7 @@ function toggleLoginMain(email) {
     let emailHeader = document.getElementById('email_header');
 
     emailHeader.innerHTML = email;
-// https://getbootstrap.com/docs/5.0/utilities/display/
+    // https://getbootstrap.com/docs/5.0/utilities/display/
     emailHeader.classList.toggle('d-none');
 
 
@@ -77,10 +79,10 @@ function toggleLoginMain(email) {
 
     main.classList.toggle('d-none');
     usuarioCabecera.classList.toggle('d-none');
-    
-    if(email.trim()===''){
+
+    if (email.trim() === '') {
         //vaciamos el main
-        main.innerHTML='';
+        main.innerHTML = '';
     }
 
 }
@@ -100,11 +102,63 @@ function showErrorLogin(msg, show, html_id) {
             divError.innerHTML = '';
             divError.classList.add('d-none');
         }
-        //El tiempo, en milisegundos, que el temporizador debe esperar antes de que se ejecute la función o el código especificado
-        , 2000);
+            //El tiempo, en milisegundos, que el temporizador debe esperar antes de que se ejecute la función o el código especificado
+            , 2000);
     } else {
         divError.innerHTML = '';
         divError.classList.add('d-none');
     }
 }
 
+function confirmLogout(event) {
+    event.preventDefault();
+
+    showModal("spa_modal", "Confirmación cierre de sesión", "¿Está seguro/a de que desea cerrar sesión?", null, null, logoutCliente, null);
+}
+
+function logoutCliente() {
+    console.log("loggin out...");
+
+    if ((userId !== null) && (userId !== undefined)) {
+        let logout_url = "?controller=Usuario&action=logout";
+
+        // let data = {
+        //     'userId': userId
+        // };
+
+        //Test con un userId que no existe
+        // let data = {
+        //     'userId': 4
+        // };
+
+         //Test con un datos mal formados 
+        // let data = {
+        //     'u': userId
+        // };
+
+        const request = new Request(base_url + logout_url, {
+            method: "POST",
+            body: JSON.stringify(data)
+        });
+
+
+        fetch(request)
+            .then((response) => {
+                return response.json();
+            })
+            .then((response) => {
+                console.log("json response: " + JSON.stringify(response));
+                toggleLoginMain('');
+                userId = null;
+
+                if (response.error !== false) {
+                    showErrorLogin('Ha ocurrido un error en el cierre de sesión', true, "errorLogin");
+                }
+            }
+            )
+            .catch((error) => {
+                console.error('Ha ocurrido un error en login' + error);
+            });
+    }
+
+}

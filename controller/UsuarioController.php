@@ -89,6 +89,31 @@ class UsuarioController
         return json_encode($app_roles);
     }
 
+    public function logout()
+    {
+        $response["error"] = true;
+        $data = json_decode(file_get_contents("php://input"), true);
+       
+        SessionManager::iniciarSesion();
+        if (isset($data["userId"])) {
+           
+            if ($data["userId"] == $_SESSION["userId"]) {
+                $response["error"] = false;
+            } else {
+                //400 Bad Request
+                http_response_code(400);
+                $response["error"] = "Authenticated user does not match logging out user. Logging out anyway";
+
+            }
+
+        } else {
+            //400 Bad Request
+            http_response_code(400);
+            $response["error"] = true;
+        }
+        //en cualquier caso cerramos la sesión por seguridad
+        SessionManager::cerrarSesion();
+        return json_encode($response);
+    }
 }
 
-?>
